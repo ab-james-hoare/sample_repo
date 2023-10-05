@@ -1,0 +1,32 @@
+pr:
+  branches:
+    include:
+      - main
+
+trigger: none
+
+pool:
+  name: 'Hosted Agent'
+
+lockBehavior: sequential
+stages:
+  - stage: TerraformValidate
+    jobs:
+      - job: TerraformValidate
+        steps:
+          - task: charleszipp.azure-pipelines-tasks-terraform.azure-pipelines-tasks-terraform-installer.TerraformInstaller@0
+            displayName: Install Terraform
+            inputs:
+              terraformVersion: '1.6.0'
+          # - task: CmdLine@2
+          #   displayName: Terraform init
+          #   inputs:
+          #     script: |
+          #       export GOOGLE_APPLICATION_CREDENTIALS=$(System.DefaultWorkingDirectory)/secret.json
+          #       terraform -chdir=terraform init
+          # - task: CmdLine@2
+          #   displayName: Terraform validate
+          #   inputs:
+          #     script: |
+          #       export GOOGLE_APPLICATION_CREDENTIALS=$(System.DefaultWorkingDirectory)/secret.json
+          #       terraform -chdir=terraform validate
