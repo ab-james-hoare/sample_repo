@@ -14,7 +14,7 @@ stages:
     jobs:
       - job: TerraformValidate
         steps:
-          - task: charleszipp.azure-pipelines-tasks-terraform.azure-pipelines-tasks-terraform-installer.TerraformInstaller@0
+          - task: TerraformInstaller
             displayName: Install Terraform
             inputs:
               terraformVersion: '1.6.0'
