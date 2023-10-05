@@ -8,7 +8,7 @@ trigger: none
 pool:
   name: 'Azure Pipelines'
 
-lockBehavior: sequential
+# lockBehavior: sequential
 stages:
   - stage: TerraformValidate
     jobs:
