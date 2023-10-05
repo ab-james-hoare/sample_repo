@@ -6,7 +6,7 @@ pr:
 trigger: none
 
 pool:
-  name: 'Hosted Agent'
+  name: 'Azure Pipelines'
 
 lockBehavior: sequential
 stages:
