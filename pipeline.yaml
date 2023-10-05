@@ -14,7 +14,7 @@ stages:
     jobs:
       - job: TerraformValidate
         steps:
-          - task: TerraformInstaller@0
+          - task: TerraformInstaller@1.0.5
             displayName: Install Terraform
             inputs:
               terraformVersion: '1.6.0'
