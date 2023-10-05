@@ -18,6 +18,11 @@ stages:
             displayName: Install Terraform
             inputs:
               terraformVersion: '1.6.0'
+          - task: CmdLine@2
+            displayName: Terraform fmt check
+            inputs:
+              script: |
+                terraform fmt -recursive -check terraform
           # - task: CmdLine@2
           #   displayName: Terraform init
           #   inputs:
