@@ -38,6 +38,8 @@ stages:
                 apt-get install nodejs -y -qq
                 apt-get install npm -y -qq
                 npm install -g @commitlint/cli @commitlint/config-conventional
+                echo "module.exports = {extends: ['@commitlint/config-conventional']}" > commitlint.config.js
+                commitlint --from=HEAD~1
           - task: CmdLine@2
             displayName: Terraform fmt check
             inputs:
