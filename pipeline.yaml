@@ -46,7 +46,7 @@ stages:
                 echo "running git log..."
                 git log
                 echo "running commitlint..."
-                commitlint --help
+                commitlint --to=HEAD
           - task: CmdLine@2
             displayName: Terraform fmt check
             inputs:
