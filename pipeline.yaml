@@ -40,6 +40,7 @@ stages:
                 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
                 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
                 nvm install 14.7.0
+                npm install -g @commitlint/cli @commitlint/config-conventional
                 echo "module.exports = {extends: ['@commitlint/config-conventional']}" > commitlint.config.js
                 commitlint --from=HEAD~1
           - task: CmdLine@2
