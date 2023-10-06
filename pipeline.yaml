@@ -36,7 +36,7 @@ stages:
               script: |
                 echo "Running tflint... \n"
                 tflint --chdir terraform --init
-                tflint --chdir terraform/
+                tflint --chdir terraform/ --force
 
           # - task: CmdLine@2
           #   displayName: Terraform init
