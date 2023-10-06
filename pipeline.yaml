@@ -19,10 +19,25 @@ stages:
             inputs:
               terraformVersion: '1.6.0'
           - task: CmdLine@2
+            displayName: Install tflint
+            inputs:
+              script: |
+                echo "Installing tflint tool... \n"
+                curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
+          - task: CmdLine@2
             displayName: Terraform fmt check
             inputs:
               script: |
+                echo "Checking if terraform code has been formatted... \n"
                 terraform fmt -recursive -check terraform
+          - task: CmdLine@2
+            displayName: Terraform lint check
+            inputs:
+              script: |
+                echo "Running tflint... \n"
+                tflint --chdir terraform --init
+                tflint --chdir terraform/
+
           # - task: CmdLine@2
           #   displayName: Terraform init
           #   inputs:
