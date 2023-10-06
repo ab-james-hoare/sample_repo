@@ -1,7 +1,10 @@
 variable "project_id" {
-  type = string
+  description = "Project id where resources will be deployed."
+  type        = string
 }
 
 variable "region" {
-  type = string
+  description = "Compute region where resources will be deployed."
+  type        = string
+  default     = "europe-west2"
 }
