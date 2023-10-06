@@ -35,7 +35,8 @@ stages:
             inputs:
               script: |
                 echo "Installing commitlint tool..."
-                apt-get install nodejs
+                apt-get install nodejs -y -qq
+                apt-get install npm -y -qq
                 npm install -g @commitlint/cli @commitlint/config-conventional
           - task: CmdLine@2
             displayName: Terraform fmt check
