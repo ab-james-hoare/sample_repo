@@ -43,10 +43,6 @@ stages:
                 nvm install 15.0.0
                 npm install -g @commitlint/cli @commitlint/config-conventional
                 echo "module.exports = {extends: ['@commitlint/config-conventional']}" > commitlint.config.js
-          - task: CmdLine@2
-            displayName: Commitlint check
-            inputs:
-              script: |
                 echo "running commitlint..."
                 commitlint --to=HEAD
           - task: CmdLine@2
