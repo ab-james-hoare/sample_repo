@@ -25,6 +25,12 @@ stages:
                 echo "Installing tflint tool... \n"
                 curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
           - task: CmdLine@2
+            displayName: Install tfsec
+            inputs:
+              script: |
+                echo "Installing tfsec tool... \n"
+                curl -s https://raw.githubusercontent.com/aquasecurity/tfsec/master/scripts/install_linux.sh | bash
+          - task: CmdLine@2
             displayName: Terraform fmt check
             inputs:
               script: |
@@ -37,7 +43,12 @@ stages:
                 echo "Running tflint... \n"
                 tflint --chdir terraform --init
                 tflint --chdir terraform/ --force
-
+          - task: CmdLine@2
+            displayName: Terraform security check
+            inputs:
+              script: |
+                echo "Running tfsec... \n"
+                tfsec terraform/
           # - task: CmdLine@2
           #   displayName: Terraform init
           #   inputs:
