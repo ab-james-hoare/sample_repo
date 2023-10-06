@@ -37,6 +37,8 @@ stages:
                 echo "Installing commitlint tool..."
                 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.5/install.sh | bash
                 export NVM_DIR="$HOME/.nvm"
+                [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+                [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
                 nvm install 14.7.0
                 echo "module.exports = {extends: ['@commitlint/config-conventional']}" > commitlint.config.js
                 commitlint --from=HEAD~1
