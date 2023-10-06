@@ -44,7 +44,7 @@ stages:
                 npm install -g @commitlint/cli @commitlint/config-conventional
                 echo "module.exports = {extends: ['@commitlint/config-conventional']}" > commitlint.config.js
                 echo "running commitlint..."
-                commitlint --from=HEAD
+                commitlint --to=HEAD
           - task: CmdLine@2
             displayName: Terraform fmt check
             inputs:
