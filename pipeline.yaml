@@ -31,7 +31,7 @@ stages:
                 echo "Installing tfsec tool..."
                 curl -s https://raw.githubusercontent.com/aquasecurity/tfsec/master/scripts/install_linux.sh | bash
           - task: CmdLine@2
-            displayName: Install commitlint
+            displayName: Install & run commitlint
             inputs:
               script: |
                 echo "Installing commitlint tool..."
@@ -51,6 +51,12 @@ stages:
               script: |
                 echo "Checking if terraform code has been formatted..."
                 terraform fmt -recursive -check terraform
+          - task: CmdLine@2
+            displayName: Terraform validate
+            inputs:
+              script: |
+                terraform -chdir=terraform init
+                terraform -chdir=terraform validate
           - task: CmdLine@2
             displayName: Terraform lint check
             inputs:
