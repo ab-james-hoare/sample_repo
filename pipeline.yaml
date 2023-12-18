@@ -129,11 +129,21 @@ stages:
 
   - stage: TerraformApply
     jobs:
-      - job: dummy_job
       - ${{ each job in parameters.jobs}}: 
+        - job: read_variable_${{ job }}
+          steps:
+            # If you download all artifacts then foldername will be same as artifact name under $(Pipeline.Workspace). Artifacts are also auto downloaded on deployment jobs.
+            - task: DownloadPipelineArtifact@2
+              inputs:
+                artifact: "VariablesArtifact_${{ job }}"
+                path: $(Pipeline.Workspace)/VariablesArtifact_${{ job }}
+            - powershell: |
+                $ShouldExecute = $(Get-Content $(Pipeline.Workspace)/VariablesArtifact_${{ job }}/${{ job }})
+                Write-Output "##vso[task.setvariable variable=${{ job }};isOutput=true]$ShouldExecute"
+              name: variablesStep     
         - job: TerraformApply_${{ job }}
-          dependsOn: TerraformTestValidateAndPlan_${{ job }}
-          condition: succeeded()
+          dependsOn: read_variable_${{ job }}
+          condition: gt(dependencies.read_variable_${{ job }}.outputs['variablesStep.${{ job }}'], 0)
           steps:
             - task: ms-devlabs.custom-terraform-tasks.custom-terraform-installer-task.TerraformInstaller@0
               displayName: 'Install Terraform'
