@@ -5,7 +5,7 @@ module "folder" {
   iam    = jsondecode(file("${path.module}/iam.json"))
 }
 
-module "folder" {
+module "folder_2" {
   source = "./modules/folder"
   parent = "folders/xxxxx"
   name   = "Onyx subfolder 2"
