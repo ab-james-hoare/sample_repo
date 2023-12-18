@@ -131,7 +131,7 @@ stages:
     jobs:
       - ${{ each job in parameters.jobs}}: 
         - job: TerraformApply_${{ job }}
-          condition: succeeded('ManualApproval_${{ job }}')
+          condition: succeeded('TerraformTestValidateAndPlan_${{ job }}')
           steps:
             - task: ms-devlabs.custom-terraform-tasks.custom-terraform-installer-task.TerraformInstaller@0
               displayName: 'Install Terraform'
