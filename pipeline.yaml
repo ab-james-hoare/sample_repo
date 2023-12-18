@@ -80,7 +80,7 @@ stages:
                 workingDirectory: '$(System.DefaultWorkingDirectory)/${{ job }}'
                 script: |
                   ls $(System.DefaultWorkingDirectory)/
-                  mv credentials-*.json credentials.json
+                  mv ../credentials-*.json ./credentials.json
                   rm -rf .terraform
                   export GOOGLE_CREDENTIALS=$(System.DefaultWorkingDirectory)/credentials.json
                   terraform init -backend-config=bucket=ab-james-dev-folder-automation-tf-state -backend-config=credentials=$(System.DefaultWorkingDirectory)/credentials.json
@@ -213,7 +213,7 @@ stages:
               displayName: 'Terraform : gcp - Apply'
               inputs:
                 script: |
-                  mv credentials-*.json credentials.json
+                  mv ../credentials-*.json ./credentials.json
                   rm -rf .terraform
                   # export GOOGLE_CREDENTIALS=$(System.DefaultWorkingDirectory)/${{ job }}/credentials.json
                   terraform init -backend-config=bucket=ab-james-dev-folder-automation-tf-state -backend-config=credentials=$(System.DefaultWorkingDirectory)/${{ job }}/credentials.json
