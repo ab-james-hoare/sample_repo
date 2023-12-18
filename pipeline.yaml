@@ -188,7 +188,7 @@ stages:
       #         onTimeout: reject
 
   - stage: TerraformApply
-    #condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+    condition: always()  #and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
     jobs:
       - ${{ each job in parameters.jobs}}: 
         - job: TerraformApply_${{ job }}
