@@ -4,4 +4,3 @@ module "folder" {
   name   = "Onyx"
   iam    = jsondecode(file("${path.module}/iam.json"))
 }
-
