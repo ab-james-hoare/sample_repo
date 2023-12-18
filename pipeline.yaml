@@ -29,7 +29,7 @@ stages:
                 mkdir -p $(System.DefaultWorkingDirectory)/variables
                 Write-Output "$countMatches" > $(System.DefaultWorkingDirectory)/variables/${{ job }}
               name: files_changed
-            - publish: $(Pipeline.Workspace)/variables
+            - publish: $(System.DefaultWorkingDirectory)/variables
               artifact: VariablesArtifact_${{ job }}
 
   - stage: TerraformTestValidateAndPlan
