@@ -11,7 +11,7 @@ terraform {
       version = "= 5.10.0"
     }
     google-beta = {
-      source  = "registry.terraform.io/hashicorp/google"
+      source  = "registry.terraform.io/hashicorp/google-beta"
       version = "= 5.10.0"
     }
   }
