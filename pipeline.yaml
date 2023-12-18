@@ -36,7 +36,7 @@ stages:
       - job: dummy_job
       - ${{ each job in parameters.jobs}}:        
         - job: TerraformTestValidateAndPlan_${{ job }}
-          dependsOn: determine_changes
+          dependsOn: determineFileChanges_${{ job }}
           variables: 
             shouldExecuteJob: $[ dependencies.determineFileChanges_${{ job }}.outputs['files_changed.${{ job }}'] ]
           condition: eq(variables.shouldExecuteJob, 'True')
