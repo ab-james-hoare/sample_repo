@@ -213,6 +213,7 @@ stages:
             - task: CmdLine@2
               displayName: 'Terraform : gcp - Apply'
               inputs:
+                workingDirectory: '$(System.DefaultWorkingDirectory)/${{ job }}'
                 script: |
                   mv ../credentials-*.json ./credentials.json
                   rm -rf .terraform
