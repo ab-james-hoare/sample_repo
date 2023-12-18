@@ -129,6 +129,7 @@ stages:
 
   - stage: TerraformApply
     jobs:
+      - job: dummy_job
       - ${{ each job in parameters.jobs}}: 
         - job: TerraformApply_${{ job }}
           dependsOn: TerraformTestValidateAndPlan_${{ job }}
