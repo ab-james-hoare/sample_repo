@@ -74,7 +74,7 @@ stages:
                 mv credentials-*.json credentials.json
                 rm -rf .terraform
                 export GOOGLE_CREDENTIALS=$(System.DefaultWorkingDirectory)/credentials.json
-                terraform init -backend-config=bucket=europe-west1-terraform-state-bucket-bpc-0001-gsb-standard -backend-config=credentials=$(System.DefaultWorkingDirectory)/credentials.json
+                terraform init -backend-config=ab-james-dev-folder-automation-tf-state -backend-config=credentials=$(System.DefaultWorkingDirectory)/credentials.json
                 terraform plan -out=$(System.DefaultWorkingDirectory)/terraform-plan-report.tfplan
           - task: PublishPipelineArtifact@1
             displayName: 'Publish Terraform Plan'
@@ -124,5 +124,5 @@ stages:
                 mv credentials-*.json credentials.json
                 rm -rf .terraform
                 export GOOGLE_CREDENTIALS=$(System.DefaultWorkingDirectory)/credentials.json
-                terraform init -backend-config=bucket=europe-west1-terraform-state-bucket-bpc-0001-gsb-standard -backend-config=credentials=$(System.DefaultWorkingDirectory)/credentials.json
+                terraform init -backend-config=ab-james-dev-folder-automation-tf-state -backend-config=credentials=$(System.DefaultWorkingDirectory)/credentials.json
                 terraform apply -no-color $(System.DefaultWorkingDirectory)/terraform-plan-report.tfplan
