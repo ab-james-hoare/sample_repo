@@ -26,8 +26,8 @@ stages:
                 $changedFiles = git diff --name-status HEAD HEAD^
                 $matches = Select-String -InputObject $changedFiles -Pattern "${{ job }}/" -AllMatches
                 $countMatches = $matches.Matches.Count
-                mkdir -p $(PipelineWorkspace)/variables
-                Write-Output "$countMatches" > $PipelineWorkspace/variables/${{ job }}
+                mkdir -p $(System.DefaultWorkingDirectory)/variables
+                Write-Output "$countMatches" > $(System.DefaultWorkingDirectory)/variables/${{ job }}
               name: files_changed
             - publish: $(Pipeline.Workspace)/variables
               artifact: VariablesArtifact_${{ job }}
