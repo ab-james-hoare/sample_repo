@@ -49,7 +49,7 @@ stages:
                 Write-Output "##vso[task.setvariable variable=${{ job }};isOutput=true]$ShouldExecute"
               name: variablesStep        
         - job: TerraformTestValidateAndPlan_${{ job }}
-          dependsOn: read_variables
+          dependsOn: read_variables_${{ job }}
           condition: eq(dependencies.read_variables.outputs['variablesStep.${{ job }}'], 'true')
           variables:
             ${{ job }}: $[dependencies.setup_variables.outputs['variablesStep.${{ job }}']]
