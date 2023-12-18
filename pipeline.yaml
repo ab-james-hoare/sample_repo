@@ -164,8 +164,7 @@ stages:
       #         targetPath: '$(System.DefaultWorkingDirectory)/terraform-plan-report.tfplan'
       #         artifact: 'biopharmacloud-terraform-plan-report.tfplan'
 
-- ${{ each job in parameters.jobs}}  
-  - stage: ManualApproval_${{ job }}
+  - stage: ManualApproval
     #condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
     jobs:
       - ${{ each job in parameters.jobs}}: 
