@@ -19,16 +19,16 @@ stages:
       - ${{ each job in parameters.jobs}}:
         - job: determineFileChanges_${{ job }}
           steps:
-            - task:
-              displayName: Determine path changes for ${{ job }}
-              inputs:
-                powershell: |
-                  $changedFiles = git diff --name-status HEAD HEAD^
-                  $matches = Select-String -InputObject $changedFiles -Pattern "${{ job }}/" -AllMatches
-                  $countMatches = $matches.Matches.Count
-                  Write-host "##vso[task.setvariable variable=${{ job }};isOutput=true;]$mustBuild${{ job }}"
-                  Write-host "vso[task.setvariable variable=${{ job }};isOutput=true;]$mustBuildNet${{ job }}"  
-                name: files_changed
+            # - task:
+            #   displayName: Determine path changes for ${{ job }}
+            #   inputs:
+            powershell: |
+              $changedFiles = git diff --name-status HEAD HEAD^
+              $matches = Select-String -InputObject $changedFiles -Pattern "${{ job }}/" -AllMatches
+              $countMatches = $matches.Matches.Count
+              Write-host "##vso[task.setvariable variable=${{ job }};isOutput=true;]$mustBuild${{ job }}"
+              Write-host "vso[task.setvariable variable=${{ job }};isOutput=true;]$mustBuildNet${{ job }}"  
+            name: files_changed
   - stage: TerraformTestValidateAndPlan
     jobs:
       - ${{ each job in parameters.jobs}}:        
