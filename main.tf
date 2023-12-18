@@ -1,5 +1,5 @@
 module "folder" {
-  source = "./fabric/modules/folder"
+  source = "./modules/folder"
   parent = "folders/621837133107"
   name   = "james auto folder"
   iam    = jsondecode(file("${path.module}/iam.json"))
