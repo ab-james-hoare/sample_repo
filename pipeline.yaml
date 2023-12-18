@@ -35,7 +35,6 @@ stages:
   - stage: TerraformTestValidateAndPlan
     condition: always()
     jobs:
-      - job: dummy_job
       - ${{ each job in parameters.jobs}}:
         - job: read_variable_${{ job }}
           steps:
