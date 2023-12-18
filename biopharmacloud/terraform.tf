@@ -5,14 +5,14 @@ terraform {
     prefix = "biopharmacloud"
   }
 
-    required_providers {
-      google = {
-        source  = "registry.terraform.io/hashicorp/google"
-        version = "= 5.10.0"
-      }
-      google-beta = {
-        source  = "registry.terraform.io/hashicorp/google"
-        version = "= 5.10.0"
-      }
+  required_providers {
+    google = {
+      source  = "registry.terraform.io/hashicorp/google"
+      version = "= 5.10.0"
+    }
+    google-beta = {
+      source  = "registry.terraform.io/hashicorp/google"
+      version = "= 5.10.0"
+    }
   }
 }
