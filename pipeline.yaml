@@ -75,7 +75,7 @@ stages:
                 rm -rf .terraform
                 export GOOGLE_CREDENTIALS=$(System.DefaultWorkingDirectory)/credentials.json
                 terraform init -backend-config=bucket=europe-west1-terraform-state-bucket-bpc-0001-gsb-standard -backend-config=credentials=$(System.DefaultWorkingDirectory)/credentials.json
-                terraform plan -out=$(System.DefaultWorkingDirectory)/terraform-plan-report.tfplan -var-file=terraform.tfvars
+                terraform plan -out=$(System.DefaultWorkingDirectory)/terraform-plan-report.tfplan
           - task: PublishPipelineArtifact@1
             displayName: 'Publish Terraform Plan'
             inputs:
