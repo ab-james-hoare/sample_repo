@@ -34,10 +34,9 @@ stages:
       - ${{ each job in parameters.jobs}}:        
         - job: TerraformTestValidateAndPlan_${{ job }}
           dependsOn: determine_changes
-            variables: 
-              shouldExecuteJob: $[ dependencies.determineFileChanges_${{ job }}.outputs['files_changed.${{ job }}'] ]
-
-            condition: eq(variables.shouldExecuteJob, 'True')
+          variables: 
+            shouldExecuteJob: $[ dependencies.determineFileChanges_${{ job }}.outputs['files_changed.${{ job }}'] ]
+          condition: eq(variables.shouldExecuteJob, 'True')
           steps:
             - task: ms-devlabs.custom-terraform-tasks.custom-terraform-installer-task.TerraformInstaller@0
               displayName: 'Install Terraform'
