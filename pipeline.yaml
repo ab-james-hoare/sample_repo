@@ -1,0 +1,128 @@
+# Copyright 2022 Google LLC.
+# This software is provided as is, without warranty or representation for any use or purpose.
+# Your use of it is subject to your agreement with Google.
+
+pool: 
+  name: 'Default'
+  vmImage: 'ubuntu-20.04'
+
+lockBehavior: sequential
+stages:
+  - stage: TerraformTestValidateAndPlan
+    jobs:
+      - job: TerraformTestValidateAndPlan
+        steps:
+          - task: ms-devlabs.custom-terraform-tasks.custom-terraform-installer-task.TerraformInstaller@0
+            displayName: 'Install Terraform'
+            inputs:
+              terraformVersion: '1.6.5'
+          - task: CmdLine@2
+            displayName: 'Install tflint'
+            inputs:
+              script: |
+                echo "Installing tflint tool..."
+                curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
+          - task: CmdLine@2
+            displayName: 'Install tfsec'
+            inputs:
+              script: |
+                echo "Installing tfsec tool..."
+                curl -s https://raw.githubusercontent.com/aquasecurity/tfsec/master/scripts/install_linux.sh | bash
+          - task: CmdLine@2
+            displayName: 'Terraform : fmt check'
+            inputs:
+              workingDirectory: '$(System.DefaultWorkingDirectory)'
+              script: |
+                echo "Checking if terraform code has been formatted..."
+                terraform fmt -recursive -check .            
+          - task: ms-devlabs.custom-terraform-tasks.custom-terraform-release-task.TerraformTaskV2@2
+            displayName: 'Terraform : gcp - Init'
+            inputs:
+              provider: gcp
+              workingDirectory: '$(System.DefaultWorkingDirectory)'
+              backendServiceGCP: 'folder-automation'
+              backendGCPBucketName: 'ab-james-dev-folder-automation-tf-state'
+              backendGCPPrefix: terraform/state
+          - task: ms-devlabs.custom-terraform-tasks.custom-terraform-release-task.TerraformTaskV2@2
+            displayName: 'Terraform : gcp - Validate'
+            inputs:
+              provider: gcp
+              command: validate
+              workingDirectory: '$(System.DefaultWorkingDirectory)'
+              backendServiceGCP: 'folder-automation'
+              backendGCPBucketName: 'ab-james-dev-folder-automation-tf-state'
+              backendGCPPrefix: terraform/state
+          - task: CmdLine@2
+            displayName: 'Terraform : lint check'
+            inputs:
+              workingDirectory: '$(System.DefaultWorkingDirectory)'
+              script: |
+                echo "Running tflint..."
+                tflint --init
+                tflint --force
+          - task: CmdLine@2
+            displayName: 'Terraform : security check'
+            inputs:
+              workingDirectory: '$(System.DefaultWorkingDirectory)'
+              script: |
+                echo "Running tfsec..."
+                tfsec ./ --tfvars-file=terraform.tfvars --include-passed
+          - task: CmdLine@2
+            displayName: 'Terraform : gcp - Plan'
+            inputs:
+              script: |
+                mv credentials-*.json credentials.json
+                rm -rf .terraform
+                export GOOGLE_CREDENTIALS=$(System.DefaultWorkingDirectory)/credentials.json
+                terraform init -backend-config=bucket=europe-west1-terraform-state-bucket-bpc-0001-gsb-standard -backend-config=credentials=$(System.DefaultWorkingDirectory)/credentials.json
+                terraform plan -out=$(System.DefaultWorkingDirectory)/terraform-plan-report.tfplan -var-file=terraform.tfvars
+          - task: PublishPipelineArtifact@1
+            displayName: 'Publish Terraform Plan'
+            inputs:
+              targetPath: '$(System.DefaultWorkingDirectory)/terraform-plan-report.tfplan'
+              artifact: 'terraform-plan-report.tfplan'
+
+  - stage: ManualApproval
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+    jobs:
+      - job: ManualApproval
+        pool: server
+        steps:
+          - task: ManualValidation@0
+            displayName: 'Approve/reject terraform plan'
+            timeoutInMinutes: 60
+            inputs:
+              instructions: Please verify the Terraform plan before allowing the pipeline to continue.
+              onTimeout: reject
+
+  - stage: TerraformApply
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+    jobs:
+      - job: TerraformApply
+        steps:
+          - task: ms-devlabs.custom-terraform-tasks.custom-terraform-installer-task.TerraformInstaller@0
+            displayName: 'Install Terraform'
+            inputs:
+              terraformVersion: '1.6.5'
+          - task: DownloadPipelineArtifact@0
+            displayName: 'Download Terraform Plan'
+            inputs:
+              artifactName: 'terraform-plan-report.tfplan'
+              targetPath: '$(System.DefaultWorkingDirectory)/'
+          - task: ms-devlabs.custom-terraform-tasks.custom-terraform-release-task.TerraformTaskV2@2
+            displayName: 'Terraform : gcp - Init'
+            inputs:
+              provider: gcp
+              workingDirectory: '$(System.DefaultWorkingDirectory)'
+              backendServiceGCP: 'folder-automation'
+              backendGCPBucketName: 'ab-james-dev-folder-automation-tf-state'
+              backendGCPPrefix: terraform/state
+          - task: CmdLine@2
+            displayName: 'Terraform : gcp - Apply'
+            inputs:
+              script: |
+                mv credentials-*.json credentials.json
+                rm -rf .terraform
+                export GOOGLE_CREDENTIALS=$(System.DefaultWorkingDirectory)/credentials.json
+                terraform init -backend-config=bucket=europe-west1-terraform-state-bucket-bpc-0001-gsb-standard -backend-config=credentials=$(System.DefaultWorkingDirectory)/credentials.json
+                terraform apply -no-color $(System.DefaultWorkingDirectory)/terraform-plan-report.tfplan
