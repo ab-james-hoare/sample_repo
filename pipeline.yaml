@@ -3,7 +3,7 @@
 # Your use of it is subject to your agreement with Google.
 
 pool: 
-  name: 'Default'
+  name: 'Azure Pipelines'
   vmImage: 'ubuntu-20.04'
 
 lockBehavior: sequential
