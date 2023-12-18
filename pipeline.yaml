@@ -17,7 +17,7 @@ stages:
   - stage: TerraformTestValidateAndPlan
     jobs:
       - ${{ each job in parameters.jobs}}:        
-        - job: TerraformTestValidateAndPlan - ${{ job.value }}
+        - job: TerraformTestValidateAndPlan - ${{ job }}
           steps:
             - task: ms-devlabs.custom-terraform-tasks.custom-terraform-installer-task.TerraformInstaller@0
               displayName: 'Install Terraform'
@@ -38,7 +38,7 @@ stages:
             - task: CmdLine@2
               displayName: 'Terraform : fmt check'
               inputs:
-                workingDirectory: '$(System.DefaultWorkingDirectory)/${{ job.value }}'
+                workingDirectory: '$(System.DefaultWorkingDirectory)/${{ job }}'
                 script: |
                   echo "Checking if terraform code has been formatted..."
                   terraform fmt -recursive -check .            
@@ -46,7 +46,7 @@ stages:
               displayName: 'Terraform : gcp - Init'
               inputs:
                 provider: gcp
-                workingDirectory: '$(System.DefaultWorkingDirectory)/${{ job.value }}'
+                workingDirectory: '$(System.DefaultWorkingDirectory)/${{ job }}'
                 backendServiceGCP: 'folder-automation'
                 backendGCPBucketName: 'ab-james-dev-folder-automation-tf-state'
                 backendGCPPrefix: terraform/state
@@ -55,14 +55,14 @@ stages:
               inputs:
                 provider: gcp
                 command: validate
-                workingDirectory: '$(System.DefaultWorkingDirectory)/${{ job.value }}'
+                workingDirectory: '$(System.DefaultWorkingDirectory)/${{ job }}'
                 backendServiceGCP: 'folder-automation'
                 backendGCPBucketName: 'ab-james-dev-folder-automation-tf-state'
                 backendGCPPrefix: terraform/state
             - task: CmdLine@2
               displayName: 'Terraform : lint check'
               inputs:
-                workingDirectory: '$(System.DefaultWorkingDirectory)/${{ job.value }}'
+                workingDirectory: '$(System.DefaultWorkingDirectory)/${{ job }}'
                 script: |
                   echo "Running tflint..."
                   tflint --init
@@ -70,14 +70,14 @@ stages:
             - task: CmdLine@2
               displayName: 'Terraform : security check'
               inputs:
-                workingDirectory: '$(System.DefaultWorkingDirectory)/${{ job.value }}'
+                workingDirectory: '$(System.DefaultWorkingDirectory)/${{ job }}'
                 script: |
                   echo "Running tfsec..."
                   tfsec ./ --include-passed
             - task: CmdLine@2
               displayName: 'Terraform : gcp - Plan'
               inputs:
-                workingDirectory: '$(System.DefaultWorkingDirectory)/${{ job.value }}'
+                workingDirectory: '$(System.DefaultWorkingDirectory)/${{ job }}'
                 script: |
                   mv credentials-*.json credentials.json
                   rm -rf .terraform
@@ -88,7 +88,7 @@ stages:
               displayName: 'Publish Terraform Plan'
               inputs:
                 targetPath: '$(System.DefaultWorkingDirectory)/terraform-plan-report.tfplan'
-                artifact: '${{ job.value }}-terraform-plan-report.tfplan'
+                artifact: '${{ job }}-terraform-plan-report.tfplan'
 
       # - job: TerraformTestValidateAndPlan - biopharmacloud
       #   steps:
@@ -166,7 +166,7 @@ stages:
     #condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
     jobs:
       - ${{ each job in parameters.jobs}}: 
-        - job: ManualApproval - ${{ job.value }}
+        - job: ManualApproval - ${{ job }}
           pool: server
           steps:
             - task: ManualValidation@0
