@@ -22,7 +22,7 @@ stages:
             # - task:
             #   displayName: Determine path changes for ${{ job }}
             #   inputs:
-            powershell: |
+            - powershell: |
               $changedFiles = git diff --name-status HEAD HEAD^
               $matches = Select-String -InputObject $changedFiles -Pattern "${{ job }}/" -AllMatches
               $countMatches = $matches.Matches.Count
