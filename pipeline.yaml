@@ -6,9 +6,11 @@ pool:
   name: 'Default'
 
 parameters:
-- name: 'jobs'
-  type: jobList
-  default: ["onyx", "biopharmacloud"]
+- name: jobs
+  type: object
+  default: 
+    - onyx
+    - biopharmacloud
 
 lockBehavior: sequential
 stages:
