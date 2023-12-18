@@ -33,6 +33,7 @@ stages:
   - stage: TerraformTestValidateAndPlan
     condition: always()
     jobs:
+      - job: dummy_job
       - ${{ each job in parameters.jobs}}:        
         - job: TerraformTestValidateAndPlan_${{ job }}
           dependsOn: determine_changes
