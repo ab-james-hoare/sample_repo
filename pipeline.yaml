@@ -83,7 +83,7 @@ stages:
                   mv ../credentials-*.json ./credentials.json
                   rm -rf .terraform
                   ls $(System.DefaultWorkingDirectory)/${{ job }}
-                  export GOOGLE_CREDENTIALS=$(System.DefaultWorkingDirectory)/credentials.json
+                  export GOOGLE_CREDENTIALS=$(System.DefaultWorkingDirectory)/${{ job }}/credentials.json
                   terraform init -backend-config=bucket=ab-james-dev-folder-automation-tf-state -backend-config=credentials=$(System.DefaultWorkingDirectory)/${{ job }}/credentials.json
                   terraform plan -out=$(System.DefaultWorkingDirectory)/${{ job }}/terraform-plan-report.tfplan
             - task: PublishPipelineArtifact@1
