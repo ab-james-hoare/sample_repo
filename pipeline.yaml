@@ -54,7 +54,6 @@ stages:
           variables:
             ${{ job }}: $[dependencies.setup_variables.outputs['variablesStep.${{ job }}']]
           steps:
-          steps:
             - task: ms-devlabs.custom-terraform-tasks.custom-terraform-installer-task.TerraformInstaller@0
               displayName: 'Install Terraform'
               inputs:
