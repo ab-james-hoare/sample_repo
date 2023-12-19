@@ -34,7 +34,6 @@ stages:
                 mkdir -p $(System.DefaultWorkingDirectory)/variables
                 echo "$countMatches" > $(System.DefaultWorkingDirectory)/variables/${{ job }}
               name: files_changed
-              name: files_changed
             - publish: $(System.DefaultWorkingDirectory)/variables
               artifact: VariablesArtifact_${{ job }}
 
