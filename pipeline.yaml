@@ -22,12 +22,18 @@ stages:
             # - task:
             #   displayName: Determine path changes for ${{ job }}
             #   inputs:
-            - powershell: |
-                $changedFiles = git diff --name-status HEAD HEAD^
-                $matches = Select-String -InputObject $changedFiles -Pattern "${{ job }}/" -AllMatches
-                $countMatches = $matches.Matches.Count
+            # - powershell: |
+            #     $changedFiles = git diff --name-status HEAD HEAD^
+            #     $matches = Select-String -InputObject $changedFiles -Pattern "${{ job }}/" -AllMatches
+            #     $countMatches = $matches.Matches.Count
+            #     mkdir -p $(System.DefaultWorkingDirectory)/variables
+            #     Write-Output "$countMatches" > $(System.DefaultWorkingDirectory)/variables/${{ job }}
+              - bash: |
+                changedFiles=$(git diff --name-status HEAD HEAD~1)
+                countMatches=$(echo "$changedFiles" | grep -c "${{ job }}/")
                 mkdir -p $(System.DefaultWorkingDirectory)/variables
-                Write-Output "$countMatches" > $(System.DefaultWorkingDirectory)/variables/${{ job }}
+                echo "$countMatches" > $(System.DefaultWorkingDirectory)/variables/${{ job }}
+              name: files_changed
               name: files_changed
             - publish: $(System.DefaultWorkingDirectory)/variables
               artifact: VariablesArtifact_${{ job }}
