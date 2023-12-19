@@ -11,3 +11,4 @@ module "folder_2" {
   name   = "Onyx_2"
   iam    = jsondecode(file("${path.module}/iam.json"))
 }
+
