@@ -1,0 +1,182 @@
+# Copyright 2022 Google LLC.
+# This software is provided as is, without warranty or representation for any use or purpose.
+# Your use of it is subject to your agreement with Google.
+
+pool: 
+  name: 'Default'
+
+parameters:
+- name: jobs
+  type: object
+  default: 
+    - onyx
+    - biopharmacloud
+
+lockBehavior: sequential
+stages:
+  - stage:
+    jobs:
+      - ${{ each job in parameters.jobs}}:
+        - job: determineFileChanges_${{ job }}
+          steps:
+            # - task:
+            #   displayName: Determine path changes for ${{ job }}
+            #   inputs:
+            - bash: |
+                changedFiles=$(git diff --name-status HEAD HEAD~1)
+                countMatches=$(echo "$changedFiles" | grep -c "${{ job }}/")
+                mkdir -p $(System.DefaultWorkingDirectory)/variables
+                echo "$countMatches" > $(System.DefaultWorkingDirectory)/variables/${{ job }}
+              name: files_changed
+            # - task:
+            #   displayName: Determine path changes for ${{ job }}
+            #   inputs:
+            # - powershell: |
+            #     $changedFiles = git diff --name-status HEAD HEAD^
+            #     $matches = Select-String -InputObject $changedFiles -Pattern "${{ job }}/" -AllMatches
+            #     $countMatches = $matches.Matches.Count
+            #     mkdir -p $(System.DefaultWorkingDirectory)/variables
+            #     Write-Output "$countMatches" > $(System.DefaultWorkingDirectory)/variables/${{ job }}
+            #   name: files_changed
+            - publish: $(System.DefaultWorkingDirectory)/variables
+              artifact: VariablesArtifact_${{ job }}
+
+  - stage: TerraformTestValidateAndPlan
+    condition: always()
+    jobs:
+      - ${{ each job in parameters.jobs}}:
+        - job: read_variable_${{ job }}
+          steps:
+            # If you download all artifacts then foldername will be same as artifact name under $(Pipeline.Workspace). Artifacts are also auto downloaded on deployment jobs.
+            - task: DownloadPipelineArtifact@2
+              inputs:
+                artifact: "VariablesArtifact_${{ job }}"
+                path: $(Pipeline.Workspace)/VariablesArtifact_${{ job }}
+            - powershell: |
+                $ShouldExecute = $(Get-Content $(Pipeline.Workspace)/VariablesArtifact_${{ job }}/${{ job }})
+                Write-Output "##vso[task.setvariable variable=${{ job }};isOutput=true]$ShouldExecute"
+              name: variablesStep        
+        - job: TerraformTestValidateAndPlan_${{ job }}
+          dependsOn: read_variable_${{ job }}
+          condition: gt(dependencies.read_variable_${{ job }}.outputs['variablesStep.${{ job }}'], 0)
+          variables:
+            ${{ job }}: $[dependencies.setup_variables.outputs['variablesStep.${{ job }}']]
+          steps:
+            - task: ms-devlabs.custom-terraform-tasks.custom-terraform-installer-task.TerraformInstaller@0
+              displayName: 'Install Terraform'
+              inputs:
+                terraformVersion: '1.6.5'
+            - task: CmdLine@2
+              displayName: 'Install tflint'
+              inputs:
+                script: |
+                  echo "Installing tflint tool..."
+                  curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
+            - task: CmdLine@2
+              displayName: 'Install tfsec'
+              inputs:
+                script: |
+                  echo "Installing tfsec tool..."
+                  curl -s https://raw.githubusercontent.com/aquasecurity/tfsec/master/scripts/install_linux.sh | bash
+            - task: CmdLine@2
+              displayName: 'Terraform : fmt check'
+              inputs:
+                workingDirectory: '$(System.DefaultWorkingDirectory)/${{ job }}'
+                script: |
+                  echo "Checking if terraform code has been formatted..."
+                  terraform fmt -recursive -check .            
+            - task: ms-devlabs.custom-terraform-tasks.custom-terraform-release-task.TerraformTaskV2@2
+              displayName: 'Terraform : gcp - Init'
+              inputs:
+                provider: gcp
+                workingDirectory: '$(System.DefaultWorkingDirectory)/${{ job }}'
+                backendServiceGCP: 'folder-automation'
+                backendGCPBucketName: 'ab-james-dev-folder-automation-tf-state'
+                # backendGCPPrefix: terraform/state
+            - task: ms-devlabs.custom-terraform-tasks.custom-terraform-release-task.TerraformTaskV2@2
+              displayName: 'Terraform : gcp - Validate'
+              inputs:
+                provider: gcp
+                command: validate
+                workingDirectory: '$(System.DefaultWorkingDirectory)/${{ job }}'
+                backendServiceGCP: 'folder-automation'
+                backendGCPBucketName: 'ab-james-dev-folder-automation-tf-state'
+                # backendGCPPrefix: terraform/state
+            - task: CmdLine@2
+              displayName: 'Terraform : lint check'
+              inputs:
+                workingDirectory: '$(System.DefaultWorkingDirectory)/${{ job }}'
+                script: |
+                  echo "Running tflint..."
+                  tflint --init
+                  tflint --force
+            - task: CmdLine@2
+              displayName: 'Terraform : security check'
+              inputs:
+                workingDirectory: '$(System.DefaultWorkingDirectory)/${{ job }}'
+                script: |
+                  echo "Running tfsec..."
+                  tfsec ./ --include-passed
+            - task: CmdLine@2
+              displayName: 'Terraform : gcp - Plan'
+              inputs:
+                workingDirectory: '$(System.DefaultWorkingDirectory)/${{ job }}'
+                script: |
+                  ls $(System.DefaultWorkingDirectory)/
+                  mv ../credentials-*.json ./credentials.json
+                  rm -rf .terraform
+                  ls $(System.DefaultWorkingDirectory)/${{ job }}
+                  export GOOGLE_CREDENTIALS=$(System.DefaultWorkingDirectory)/${{ job }}/credentials.json
+                  terraform init -backend-config=bucket=ab-james-dev-folder-automation-tf-state -backend-config=credentials=$(System.DefaultWorkingDirectory)/${{ job }}/credentials.json
+                  terraform plan -out=$(System.DefaultWorkingDirectory)/${{ job }}/terraform-plan-report.tfplan
+            - task: PublishPipelineArtifact@1
+              displayName: 'Publish Terraform Plan'
+              inputs:
+                targetPath: '$(System.DefaultWorkingDirectory)/${{ job }}/terraform-plan-report.tfplan'
+                artifact: '${{ job }}-terraform-plan-report.tfplan'
+
+  - stage: TerraformApply
+    jobs:
+      - ${{ each job in parameters.jobs}}: 
+        - job: read_variable_${{ job }}
+          steps:
+            # If you download all artifacts then foldername will be same as artifact name under $(Pipeline.Workspace). Artifacts are also auto downloaded on deployment jobs.
+            - task: DownloadPipelineArtifact@2
+              inputs:
+                artifact: "VariablesArtifact_${{ job }}"
+                path: $(Pipeline.Workspace)/VariablesArtifact_${{ job }}
+            - powershell: |
+                $ShouldExecute = $(Get-Content $(Pipeline.Workspace)/VariablesArtifact_${{ job }}/${{ job }})
+                Write-Output "##vso[task.setvariable variable=${{ job }};isOutput=true]$ShouldExecute"
+              name: variablesStep     
+        - job: TerraformApply_${{ job }}
+          dependsOn: read_variable_${{ job }}
+          condition: gt(dependencies.read_variable_${{ job }}.outputs['variablesStep.${{ job }}'], 0)
+          steps:
+            - task: ms-devlabs.custom-terraform-tasks.custom-terraform-installer-task.TerraformInstaller@0
+              displayName: 'Install Terraform'
+              inputs:
+                terraformVersion: '1.6.5'
+            - task: DownloadPipelineArtifact@0
+              displayName: 'Download Terraform Plan'
+              inputs:
+                artifactName: '${{ job }}-terraform-plan-report.tfplan'
+                targetPath: '$(System.DefaultWorkingDirectory)/${{ job }}'
+            - task: ms-devlabs.custom-terraform-tasks.custom-terraform-release-task.TerraformTaskV2@2
+              displayName: 'Terraform : gcp - Init'
+              inputs:
+                provider: gcp
+                workingDirectory: '$(System.DefaultWorkingDirectory)/${{ job }}'
+                backendServiceGCP: 'folder-automation'
+                backendGCPBucketName: 'ab-james-dev-folder-automation-tf-state'
+                # backendGCPPrefix: terraform/state
+            - task: CmdLine@2
+              displayName: 'Terraform : gcp - Apply'
+              inputs:
+                workingDirectory: '$(System.DefaultWorkingDirectory)/${{ job }}'
+                script: |
+                  mv ../credentials-*.json ./credentials.json
+                  rm -rf .terraform
+                  export GOOGLE_CREDENTIALS=$(System.DefaultWorkingDirectory)/${{ job }}/credentials.json
+                  terraform init -backend-config=bucket=ab-james-dev-folder-automation-tf-state -backend-config=credentials=$(System.DefaultWorkingDirectory)/${{ job }}/credentials.json
+                  terraform apply -no-color $(System.DefaultWorkingDirectory)/${{ job }}/terraform-plan-report.tfplan
